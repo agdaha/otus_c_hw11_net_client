@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 
     unsigned char response[BUFFER_SIZE];
     int r;
-    int len = 0;
+    //int len = 0;
     r = recv(sock_fd, &response[0], BUFFER_SIZE, 0);
     if(r < 0){
         perror("recv");
@@ -94,7 +94,8 @@ int main(int argc, char *argv[]) {
         close(sock_fd);
         return EXIT_FAILURE;
     }
-    for(int i = 0; i < r; i++){
+    char *start =  strstr((char *)response, "\r\n");
+    for(int i = start - (char*) &response[0] + 2; i < r; i++){
         putchar(response[i]);
     }
 
