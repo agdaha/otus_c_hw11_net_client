@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
     if (argc != 3)
     {
         fprintf(stderr, "Usage: %s <font_name> <your_text>\n", argv[0]);
+        fprintf(stderr, "Example: %s banner \"Hello World\"\n", argv[0]);
         return EXIT_FAILURE;
     }
     const char *font = argv[1];
