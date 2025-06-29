@@ -10,10 +10,12 @@
 #define HOST_NAME "telehack.com"
 #define PORT "23"
 #define BUFFER_SIZE 4096
-#define TIMEOUT_SEC 5
+#define TIMEOUT_SEC 1
 
-int main(int argc, char *argv[]) {
-    if (argc != 3) {
+int main(int argc, char *argv[])
+{
+    if (argc != 3)
+    {
         fprintf(stderr, "Usage: %s <font_name> <your_text>\n", argv[0]);
         return EXIT_FAILURE;
     }
@@ -31,27 +33,32 @@ int main(int argc, char *argv[]) {
     hints.ai_socktype = SOCK_STREAM;
 
     int status = getaddrinfo(HOST_NAME, PORT, &hints, &res);
-    if (status != 0) {
+    if (status != 0)
+    {
         fprintf(stderr, "getaddrinfo error: %s\n", gai_strerror(status));
         return EXIT_FAILURE;
     }
 
-    for (p = res; p != NULL; p = p->ai_next) {
-        if ((sock_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
+    for (p = res; p != NULL; p = p->ai_next)
+    {
+        if ((sock_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1)
+        {
             perror("socket");
             continue;
         }
         struct timeval timeout;
         timeout.tv_sec = TIMEOUT_SEC;
         timeout.tv_usec = 0;
-        
-        if (setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
+
+        if (setsockopt(sock_fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0)
+        {
             perror("setsockopt");
             close(sock_fd);
             continue;
         }
 
-        if (connect(sock_fd, p->ai_addr, p->ai_addrlen) == -1) {
+        if (connect(sock_fd, p->ai_addr, p->ai_addrlen) == -1)
+        {
             perror("connect");
             continue;
         }
@@ -59,43 +66,35 @@ int main(int argc, char *argv[]) {
     }
 
     freeaddrinfo(res);
-    
-    if (p == NULL) {
+
+    if (p == NULL)
+    {
         fprintf(stderr, "Failed to connect to %s\n", HOST_NAME);
         return EXIT_FAILURE;
     }
 
-    sleep(3); // Ждем реакцию сервера, вывода приглащения
-
     unsigned char response[BUFFER_SIZE];
     int r;
-    //int len = 0;
-    r = recv(sock_fd, &response[0], BUFFER_SIZE, 0);
-    if(r < 0){
-        perror("recv");
-        close(sock_fd);
-        return EXIT_FAILURE;
+    int len = 0;
+    while ((r = recv(sock_fd, &response[len], BUFFER_SIZE-len, 0)) > 0){
+        len +=r;
     }
 
-    // for(int i = 0; i < r; i++){
-    //     putchar(response[i]);
-    // }
-
-    //unsigned char cmd[10] = {255,254,3};
-    if(send(sock_fd, command, strlen(command), 0) < 0){
+    if (send(sock_fd, command, strlen(command), 0) < 0)
+    {
         perror("send");
         close(sock_fd);
         return EXIT_FAILURE;
     }
-    sleep(3); // Ждем реакцию сервера
-    r = recv(sock_fd, &response[0], BUFFER_SIZE, 0);
-    if(r < 0){
-        perror("recv");
-        close(sock_fd);
-        return EXIT_FAILURE;
+
+    len = 0;
+    while ((r = recv(sock_fd, &response[len], BUFFER_SIZE-len, 0)) > 0){
+        len +=r;
     }
-    char *start =  strstr((char *)response, "\r\n");
-    for(int i = start - (char*) &response[0] + 2; i < r; i++){
+
+    char *start = strstr((char *)response, "\r\n");
+    for (int i = start - (char *)&response[0] + 2; i < len; i++)
+    {
         putchar(response[i]);
     }
 
